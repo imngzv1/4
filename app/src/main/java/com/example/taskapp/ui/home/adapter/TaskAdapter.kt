@@ -1,35 +1,69 @@
 package com.example.h_w_1_4month.ui.home.adapter
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.taskapp.databinding.ItemTaskBinding
 import com.example.taskapp.model.Task
 
-class TaskAdapter: RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
-    private val data= arrayListOf<Task>()
-    fun addTask(task: Task){
-        data.add(0,task)
+class TaskAdapter(
+    private var onLongClick: (Int) -> Unit, private var onUpdateClick: (Task) -> Unit,
+) :
+    RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
+
+    private var arrayTask = arrayListOf<Task>()
+    @SuppressLint("NotifyDataSetChanged")
+    fun addTasks(list: List<Task>) {
+        arrayTask.clear()
+        arrayTask.addAll(list)
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
-        return TaskViewHolder(ItemTaskBinding.inflate(LayoutInflater.from(parent.context),parent, false))
+    fun getTask(position: Int): Task {
+        return arrayTask[position]
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return ViewHolder(
+            ItemTaskBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent, false
+            )
+        )
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.OnBind(
+            arrayTask[position]
+        )
     }
 
     override fun getItemCount(): Int {
-        return data.size
+        return arrayTask.size
     }
 
-    override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-        holder.bind(data.get(position))
+    fun deleteItemsAndNotifyAdapter(pos: Int) {
+        arrayTask.removeAt(pos)
+        notifyItemRemoved(pos)
     }
 
-    class  TaskViewHolder(private  val binding: ItemTaskBinding):ViewHolder(binding.root) {
-        fun bind(task: Task) {
-            binding.tvTitle.text=task.title
-            binding.tvDesc.text=task.desc
+    inner class ViewHolder(private var binding: ItemTaskBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun OnBind(taskMode: Task) {
+            binding.tvTitle.text = taskMode.title
+            binding.tvDesc.text = taskMode.desc
+
+            itemView.setOnLongClickListener {
+                Log.e("ololo", "OnBind: $adapterPosition")
+                onLongClick(adapterPosition)
+                return@setOnLongClickListener true
+            }
+            itemView.setOnClickListener{
+                onUpdateClick(taskMode)
+            }
         }
     }
 }
